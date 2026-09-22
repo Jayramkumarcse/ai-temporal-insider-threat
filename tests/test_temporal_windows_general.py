@@ -45,13 +45,16 @@ def make_event(
         is_off_hours=True,
     )
 
-
 def test_supported_window_sizes():
 
     assert SUPPORTED_WINDOW_HOURS == (
         1,
         2,
         4,
+        6,
+        8,
+        12,
+        24,
     )
 
 

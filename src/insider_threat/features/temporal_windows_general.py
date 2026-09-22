@@ -7,7 +7,7 @@ from typing import Iterable
 from insider_threat.preprocessing.processed_event import ProcessedEvent
 
 
-SUPPORTED_WINDOW_HOURS = (1, 2, 4)
+SUPPORTED_WINDOW_HOURS = (1, 2, 4, 6, 8, 12, 24)
 
 
 def ensure_utc(timestamp: datetime) -> datetime:

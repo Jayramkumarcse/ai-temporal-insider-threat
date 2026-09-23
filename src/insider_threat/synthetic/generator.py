@@ -316,6 +316,7 @@ class SyntheticEventGenerator:
         self,
         start_date: datetime,
         days: int = 30,
+        include_anomaly: bool = True,
     ) -> list[EventSchema]:
 
         events = []
@@ -334,14 +335,15 @@ class SyntheticEventGenerator:
                         self._normal_day(user_id, day)
                     )
 
-        anomaly_day = start_date + timedelta(days=days // 2)
+        if include_anomaly:
+            anomaly_day = start_date + timedelta(days=days // 2)
 
-        events.extend(
-            self._suspicious_sequence(
-                "USR-003",
-                anomaly_day,
+            events.extend(
+                self._suspicious_sequence(
+                    "USR-003",
+                    anomaly_day,
+                )
             )
-        )
 
         events.sort(key=lambda event: event.timestamp)
 

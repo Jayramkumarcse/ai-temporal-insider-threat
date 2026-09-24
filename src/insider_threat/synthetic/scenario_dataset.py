@@ -27,6 +27,8 @@ def build_scenario_dataset(
     start_date: datetime,
     days: int = 30,
     user_id: str = SCENARIO_USER,
+    hour: int | None = None,
+    minute: int | None = None,
 ) -> list[EventSchema]:
     """
     Build a clean synthetic dataset containing exactly one
@@ -48,6 +50,8 @@ def build_scenario_dataset(
         scenario,
         SCENARIO_START,
         user_id=user_id,
+        hour=hour,
+        minute=minute,
     )
 
     events = [

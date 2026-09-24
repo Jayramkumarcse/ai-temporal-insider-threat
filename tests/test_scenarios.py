@@ -113,3 +113,30 @@ def test_unknown_scenario_is_rejected():
             "does_not_exist",
             START,
         )
+def test_short_anomaly_burst_supports_custom_time():
+    start = datetime(
+        2026,
+        9,
+        16,
+        0,
+        0,
+        tzinfo=timezone.utc,
+    )
+
+    events = build_scenario(
+        "short_anomaly_burst",
+        start,
+        hour=14,
+        minute=0,
+    )
+
+    timestamps = [event.timestamp for event in events]
+
+    assert timestamps[0].hour == 14
+    assert timestamps[0].minute == 0
+
+    assert timestamps[1].hour == 14
+    assert timestamps[1].minute == 1
+
+    assert timestamps[2].hour == 14
+    assert timestamps[2].minute == 2

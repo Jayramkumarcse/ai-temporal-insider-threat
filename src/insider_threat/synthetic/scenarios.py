@@ -177,15 +177,17 @@ def build_short_anomaly_burst(
     start: datetime,
     *,
     user_id: str = "USR-003",
+    hour: int = 2,
+    minute: int = 40,
 ) -> list[EventSchema]:
     """Generate a short, concentrated anomalous activity burst."""
 
     timestamp = start.replace(
-        hour=2,
-        minute=40,
-        second=0,
-        microsecond=0,
-    )
+    hour=hour,
+    minute=minute,
+    second=0,
+    microsecond=0,
+)
 
     return [
         _event(
@@ -237,6 +239,8 @@ def build_scenario(
     start: datetime,
     *,
     user_id: str = "USR-003",
+    hour: int | None = None,
+    minute: int | None = None,
 ) -> list[EventSchema]:
     """Build one controlled anomaly scenario."""
 
@@ -253,6 +257,14 @@ def build_scenario(
         raise ValueError(
             f"unsupported scenario: {scenario}"
         ) from exc
+
+    if scenario == "short_anomaly_burst":
+        return builder(
+            start,
+            user_id=user_id,
+            hour=2 if hour is None else hour,
+            minute=40 if minute is None else minute,
+        )
 
     return builder(
         start,

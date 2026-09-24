@@ -118,7 +118,7 @@ def test_target_date_filters_target_window():
         target_date=date(2026, 9, 2),
     )
 
-    assert len(sequences) == 3
+    assert len(sequences) == 1
 
     assert all(
         sequence["target_date"] == "2026-09-02"

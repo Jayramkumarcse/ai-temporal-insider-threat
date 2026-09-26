@@ -1,128 +1,154 @@
+from __future__ import annotations
+
 from datetime import date
 
+import pytest
 
-from insider_threat.evaluation.sequence_split import (
-    split_sequences_by_date,
+from insider_threat.models.sequence_split import (
+    split_sequences_by_target_date,
 )
 
 
-def make_sequence(target_date: str, user_id: str = "USR-001"):
+def _sequence(target_date: str, user_id: str = "USR-001") -> dict:
     return {
         "user_id": user_id,
         "target_date": target_date,
-        "target_window_start": (
-            f"{target_date}T02:00:00+00:00"
-        ),
+        "target_window_start": f"{target_date}T02:00:00+00:00",
         "window_hours": 1,
-        "features": [
-            [0, 0, 0, 0, 0],
-        ],
+        "features": [[0, 0, 0, 1, 1]] * 6,
     }
 
 
-def test_sequences_are_split_chronologically():
+def test_split_sequences_by_target_date():
     sequences = [
-        make_sequence("2026-09-06"),
-        make_sequence("2026-09-12"),
-        make_sequence("2026-09-13"),
-        make_sequence("2026-09-14"),
-        make_sequence("2026-09-15"),
-        make_sequence("2026-09-16"),
+        _sequence("2026-09-10"),
+        _sequence("2026-09-13"),
+        _sequence("2026-09-15"),
     ]
 
-    splits = split_sequences_by_date(sequences)
+    train, validation, test = split_sequences_by_target_date(
+        sequences,
+        train_end=date(2026, 9, 12),
+        validation_end=date(2026, 9, 14),
+    )
 
-    assert len(splits["train"]) == 2
-    assert len(splits["validation"]) == 2
-    assert len(splits["test"]) == 2
+    assert len(train) == 1
+    assert len(validation) == 1
+    assert len(test) == 1
 
-    assert {
-        sequence["target_date"]
-        for sequence in splits["train"]
-    } == {
+    assert train[0]["target_date"] == "2026-09-10"
+    assert validation[0]["target_date"] == "2026-09-13"
+    assert test[0]["target_date"] == "2026-09-15"
+
+
+def test_split_is_chronological_and_disjoint():
+    sequences = [
+        _sequence("2026-09-15"),
+        _sequence("2026-09-06"),
+        _sequence("2026-09-13"),
+        _sequence("2026-09-12"),
+    ]
+
+    train, validation, test = split_sequences_by_target_date(
+        sequences,
+        train_end=date(2026, 9, 12),
+        validation_end=date(2026, 9, 14),
+    )
+
+    assert [item["target_date"] for item in train] == [
         "2026-09-06",
         "2026-09-12",
-    }
+    ]
 
-    assert {
-        sequence["target_date"]
-        for sequence in splits["validation"]
-    } == {
+    assert [item["target_date"] for item in validation] == [
         "2026-09-13",
-        "2026-09-14",
-    }
+    ]
 
-    assert {
-        sequence["target_date"]
-        for sequence in splits["test"]
-    } == {
+    assert [item["target_date"] for item in test] == [
         "2026-09-15",
-        "2026-09-16",
-    }
-
-
-def test_known_anomaly_date_is_in_test_split():
-    sequences = [
-        make_sequence("2026-09-12"),
-        make_sequence(
-            "2026-09-16",
-            user_id="USR-003",
-        ),
     ]
 
-    splits = split_sequences_by_date(sequences)
 
-    assert len(splits["train"]) == 1
-    assert len(splits["validation"]) == 0
-    assert len(splits["test"]) == 1
+def test_split_rejects_overlapping_boundaries():
+    sequences = [_sequence("2026-09-10")]
 
-    target = splits["test"][0]
-
-    assert target["user_id"] == "USR-003"
-    assert target["target_date"] == "2026-09-16"
-
-
-def test_split_does_not_mix_target_dates():
-    sequences = [
-        make_sequence("2026-09-10"),
-        make_sequence("2026-09-13"),
-        make_sequence("2026-09-16"),
-    ]
-
-    splits = split_sequences_by_date(sequences)
-
-    train_dates = {
-        sequence["target_date"]
-        for sequence in splits["train"]
-    }
-
-    validation_dates = {
-        sequence["target_date"]
-        for sequence in splits["validation"]
-    }
-
-    test_dates = {
-        sequence["target_date"]
-        for sequence in splits["test"]
-    }
-
-    assert train_dates.isdisjoint(validation_dates)
-    assert train_dates.isdisjoint(test_dates)
-    assert validation_dates.isdisjoint(test_dates)
-
-
-def test_invalid_date_boundaries_are_rejected():
-    sequences = []
-
-    try:
-        split_sequences_by_date(
+    with pytest.raises(ValueError):
+        split_sequences_by_target_date(
             sequences,
-            train_end_date=date(2026, 9, 14),
-            validation_end_date=date(2026, 9, 12),
+            train_end=date(2026, 9, 14),
+            validation_end=date(2026, 9, 12),
         )
-    except ValueError:
-        pass
-    else:
-        raise AssertionError(
-            "Expected ValueError"
+
+
+def test_real_dataset_split_keeps_target_anomaly_in_test():
+    from pathlib import Path
+
+    from insider_threat.evaluation.temporal_window_experiments import (
+        build_temporal_window_experiment_results,
+    )
+    from insider_threat.features.builder import load_processed_events
+    from insider_threat.models.sequence_dataset import build_user_sequences
+
+    events = load_processed_events(
+        Path("data/interim/clean_events.json")
+    )
+
+    results = build_temporal_window_experiment_results(
+        events,
+        start_date=date(2026, 9, 1),
+        end_date=date(2026, 9, 16),
+        window_hours=1,
+        minimum_history=5,
+    )
+
+    sequences = build_user_sequences(
+        results,
+        sequence_length=6,
+    )
+
+    train, validation, test = split_sequences_by_target_date(
+        sequences,
+        train_end=date(2026, 9, 12),
+        validation_end=date(2026, 9, 14),
+    )
+
+    assert train
+    assert validation
+    assert test
+
+    assert all(
+        date.fromisoformat(sequence["target_date"])
+        <= date(2026, 9, 12)
+        for sequence in train
+    )
+
+    assert all(
+        date(2026, 9, 12)
+        < date.fromisoformat(sequence["target_date"])
+        <= date(2026, 9, 14)
+        for sequence in validation
+    )
+
+    assert all(
+        date.fromisoformat(sequence["target_date"])
+        > date(2026, 9, 14)
+        for sequence in test
+    )
+
+    target = next(
+        sequence
+        for sequence in test
+        if (
+            sequence["user_id"] == "USR-003"
+            and sequence["target_window_start"]
+            == "2026-09-16T02:00:00+00:00"
         )
+    )
+
+    assert target["features"][-1] == [
+        56,
+        51,
+        850000000,
+        2,
+        2,
+    ]

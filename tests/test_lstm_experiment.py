@@ -14,6 +14,10 @@ from insider_threat.models.sequence_dataset import build_user_sequences
 from insider_threat.models.sequence_pipeline import prepare_sequence_datasets
 from insider_threat.models.sequence_split import split_sequences_by_target_date
 from insider_threat.models.lstm_training import train_autoencoder
+from insider_threat.evaluation.lstm_sequence_labels import (
+    label_lstm_test_sequences,
+)
+from insider_threat.evaluation.metrics import calculate_classification_metrics
 
 
 def test_lstm_experiment_pipeline_produces_test_scores() -> None:
@@ -64,6 +68,20 @@ def test_lstm_experiment_pipeline_produces_test_scores() -> None:
 
     test_flags = test_scores > threshold
 
+    test_labels = label_lstm_test_sequences(test)
+    context_labels = label_lstm_test_sequences(
+        test,
+        context=True,
+    )
+    metrics = calculate_classification_metrics(
+        test_labels,
+        test_flags.astype(int).tolist(),
+    )
+    context_metrics = calculate_classification_metrics(
+        context_labels,
+        test_flags.astype(int).tolist(),
+    )
+
     assert datasets["train"].shape == (815, 6, 5)
     assert datasets["validation"].shape == (240, 6, 5)
     assert datasets["test"].shape == (240, 6, 5)
@@ -96,3 +114,17 @@ def test_lstm_experiment_pipeline_produces_test_scores() -> None:
     assert np.isfinite(target_score)
     assert target_score > threshold
     assert bool(test_flags[target_index])
+
+    assert metrics["true_positive"] == 1
+    assert metrics["false_negative"] == 0
+    assert metrics["true_negative"] == 234
+    assert metrics["false_positive"] == 5
+    assert metrics["recall"] == 1.0
+
+    assert context_metrics["true_positive"] == 6
+    assert context_metrics["false_positive"] == 0
+    assert context_metrics["true_negative"] == 234
+    assert context_metrics["false_negative"] == 0
+    assert context_metrics["precision"] == 1.0
+    assert context_metrics["recall"] == 1.0
+    assert context_metrics["f1"] == 1.0

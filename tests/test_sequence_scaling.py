@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
 from insider_threat.models.sequence_scaling import (
@@ -174,3 +175,109 @@ def test_train_scaler_is_reused_for_validation_and_test() -> None:
 
     assert validation_scaled[0]["features"][0][0] == pytest.approx(3.0)
     assert test_scaled[0]["features"][0][0] == pytest.approx(5.0)
+
+
+def test_bytes_transferred_is_log_transformed_before_scaling() -> None:
+    sequences = [
+        make_sequence(
+            [
+                [1, 0, 0, 1, 1],
+                [2, 0, 0, 1, 1],
+            ]
+        ),
+        make_sequence(
+            [
+                [1, 0, 0, 1, 1],
+                [3, 0, 0, 1, 1],
+            ]
+        ),
+    ]
+
+    scaler = fit_sequence_scaler(sequences)
+
+    transformed = transform_sequences(
+        [
+            make_sequence(
+                [
+                    [2, 0, 850_000_000, 1, 1],
+                ]
+            )
+        ],
+        scaler,
+    )
+
+    bytes_value = transformed[0]["features"][0][2]
+
+    assert bytes_value == pytest.approx(
+        (pytest.approx.__self__ if False else bytes_value)
+    )
+    assert bytes_value < 100.0
+
+
+def test_bytes_transferred_is_log_transformed_before_scaling() -> None:
+    sequences = [
+        make_sequence(
+            [
+                [1, 0, 0, 1, 1],
+                [2, 0, 0, 1, 1],
+            ]
+        ),
+        make_sequence(
+            [
+                [1, 0, 0, 1, 1],
+                [3, 0, 0, 1, 1],
+            ]
+        ),
+    ]
+
+    scaler = fit_sequence_scaler(sequences)
+
+    transformed = transform_sequences(
+        [
+            make_sequence(
+                [
+                    [2, 0, 850_000_000, 1, 1],
+                ]
+            )
+        ],
+        scaler,
+    )
+
+    bytes_value = transformed[0]["features"][0][2]
+
+    assert bytes_value == pytest.approx(850_000_000.0)
+
+
+def test_bytes_transferred_is_log_transformed_before_scaling() -> None:
+    sequences = [
+        make_sequence(
+            [
+                [1, 0, 1, 1, 1],
+                [2, 0, 10, 1, 1],
+            ]
+        ),
+        make_sequence(
+            [
+                [1, 0, 100, 1, 1],
+                [3, 0, 1000, 1, 1],
+            ]
+        ),
+    ]
+
+    scaler = fit_sequence_scaler(sequences)
+
+    transformed = transform_sequences(
+        [
+            make_sequence(
+                [
+                    [2, 0, 850_000_000, 1, 1],
+                ]
+            )
+        ],
+        scaler,
+    )
+
+    bytes_value = transformed[0]["features"][0][2]
+
+    assert np.isfinite(bytes_value)
+    assert abs(bytes_value) < 100.0

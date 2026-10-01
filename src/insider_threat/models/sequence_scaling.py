@@ -42,6 +42,9 @@ def fit_sequence_scaler(
             "sequence feature width does not match SEQUENCE_FEATURES"
         )
 
+    matrix = matrix.copy()
+    matrix[:, 2] = np.log1p(matrix[:, 2])
+
     scaler = StandardScaler()
     scaler.fit(matrix)
 
@@ -71,6 +74,9 @@ def transform_sequences(
             raise ValueError(
                 "sequence feature width does not match SEQUENCE_FEATURES"
             )
+
+        matrix = matrix.copy()
+        matrix[:, 2] = np.log1p(matrix[:, 2])
 
         scaled = scaler.transform(matrix)
 

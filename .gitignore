@@ -49,3 +49,6 @@ data/processed/*
 
 # Generated reports
 reports/experiment_results/*
+
+# Track experiment result CSVs for research reproducibility
+!reports/experiment_results/*.csv

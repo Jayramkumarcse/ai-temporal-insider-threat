@@ -478,3 +478,76 @@ All experiments use synthetic events. A non-target window is not necessarily a v
 - Figure: `reports/figures/score_component_ablation_selected_thresholds.png`
 
 Rerun the experiment with `python scripts/run_score_component_ablation.py`, then generate the selected-threshold summary and figure with the corresponding scripts.
+
+## 19. Seed-Cluster Bootstrap Uncertainty Analysis
+
+### Methodology
+
+A seed-cluster bootstrap analysis estimates uncertainty in detection rates for the ten score-component variants at their previously selected thresholds.
+
+The analysis retains only the selected threshold for each variant. Seeds 1–20 were used for threshold selection; seeds 21–40 form the held-out cohort, and seeds 41–60 form the replication cohort. The combined external-evaluation cohort comprises seeds 21–60 and excludes the development seeds.
+
+Each seed contributes four synthetic scenarios and seven window sizes, or 28 seed–scenario–window configurations. The analysis first computes a detection rate for each seed and variant, then resamples seed-level observations rather than treating overlapping temporal windows as independent samples. Paired comparisons resample the within-seed difference between the full composite and each ablated variant.
+
+The analysis uses 10,000 percentile-bootstrap replicates and random seed `20261025`. The intervals quantify variability across the evaluated synthetic seeds, conditional on the selected thresholds and experiment design.
+
+### Combined external-evaluation results
+
+The combined held-out and replication cohort contains 40 seeds and 1,120 configurations per variant.
+
+| Variant | Threshold | Detections | Detection rate | 95% bootstrap CI |
+|---|---:|---:|---:|---:|
+| Full composite | 0.30 | 1,079/1,120 | 96.34% | 95.00–97.59% |
+| Temporal only | 0.60 | 275/1,120 | 24.55% | 22.50–26.70% |
+| Context only | 0.20 | 904/1,120 | 80.71% | 79.82–81.61% |
+| No temporal deviation | 0.30 | 870/1,120 | 77.68% | 76.52–78.84% |
+| No temporal zero-variance | 0.35 | 862/1,120 | 76.96% | 75.54–78.39% |
+| No temporal magnitude | 0.30 | 1,066/1,120 | 95.18% | 93.39–96.79% |
+| No sensitive-access context | 0.30 | 666/1,120 | 59.46% | 57.77–61.07% |
+| No transfer context | 0.30 | 858/1,120 | 76.61% | 75.45–77.77% |
+| No device context | 0.30 | 1,088/1,120 | 97.14% | 96.25–98.04% |
+| No IP context | 0.30 | 1,093/1,120 | 97.59% | 96.70–98.48% |
+
+All ten variants had zero observed non-target alerts at their selected thresholds in the evaluated held-out and replication cohorts. This is a result for the synthetic benchmark, not a measured real-world false-positive rate.
+
+### Paired differences against the full composite
+
+The following table reports the full-composite detection rate minus the corresponding ablation's detection rate. Differences and confidence limits are in percentage points, using paired seed-level resampling over the combined external-evaluation cohort.
+
+| Comparison variant | Difference | 95% bootstrap CI |
+|---|---:|---:|
+| Temporal only | +71.79 | +69.11 to +74.38 |
+| Context only | +15.63 | +14.82 to +16.43 |
+| No temporal deviation | +18.66 | +17.86 to +19.46 |
+| No temporal zero-variance | +19.38 | +18.75 to +20.00 |
+| No temporal magnitude | +1.16 | +0.63 to +1.79 |
+| No sensitive-access context | +36.88 | +35.63 to +38.04 |
+| No transfer context | +19.73 | +19.02 to +20.45 |
+| No device context | -0.80 | -1.79 to +0.27 |
+| No IP context | -1.25 | -2.14 to -0.36 |
+
+The sensitive-access context and temporal components other than magnitude are associated with substantial reductions in detection when removed under this experimental setup. Removing the IP signal improves detection modestly in this benchmark, while the interval for removing the device signal includes zero.
+
+These comparisons do not isolate causal feature importance: removing a component changes score distributions and renormalizes the remaining weights, and each variant uses its own development-selected threshold. Comparisons across multiple variants are exploratory; no multiple-comparison adjustment was applied.
+
+### Interpretation and limitations
+
+The seed-level bootstrap retains all scenario/window outcomes belonging to a seed as one resampling unit, reducing the risk of understating uncertainty by treating overlapping windows as independent observations. The intervals nevertheless describe the variability represented by these synthetic seeds and do not account for every source of uncertainty that may arise in deployment.
+
+Thresholds were selected on the development cohort, so the held-out and replication cohorts are the more informative results for assessing performance beyond the selection data. Even there, synthetic scenarios may not capture the diversity of real insider behavior. Non-target windows are not individually verified benign examples, and zero observed alerts do not establish zero operational false positives.
+
+The findings support further validation on appropriately labeled, held-out organizational telemetry before making production-readiness claims.
+
+### Reproducibility artifacts
+
+- Analysis script: `scripts/analyze_score_component_ablation_uncertainty.py`
+- Tests: `tests/test_score_component_ablation_uncertainty.py`
+- Seed-level results: `reports/experiment_results/score_component_ablation_seed_level_performance.csv`
+- Detection-rate intervals: `reports/experiment_results/score_component_ablation_bootstrap_confidence_intervals.csv`
+- Paired differences: `reports/experiment_results/score_component_ablation_paired_differences.csv`
+
+Reproduce the analysis with:
+
+\`\`\`bash
+python scripts/analyze_score_component_ablation_uncertainty.py
+\`\`\`

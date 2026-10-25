@@ -274,3 +274,49 @@ Current experiment result files:
 
 The local processed dataset is generated from `data/raw/events.json`
 using the repository's preprocessing pipeline.
+
+## Multi-Seed Threshold Sensitivity (20-Seed Study)
+
+### Method
+
+Evaluated 20 seeds (1–20), four synthetic scenarios, and seven temporal-window sizes (1, 2, 4, 6, 8, 12, and 24 hours). This produced 560 seed–scenario–window configurations. Each scored configuration was tested against thresholds 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.60, and 0.70, for 5,040 threshold-case rows.
+
+The experiment reuses the temporal-window scores and changes the alert threshold. Target detection is determined by whether the target composite score meets or exceeds the threshold. Non-target alerts count scored windows other than the exact designated target window that meet or exceed the threshold.
+
+### Results
+
+| Threshold | Target detections | Detection rate | Non-target alert windows | Evaluations with one or more non-target alerts |
+|---:|---:|---:|---:|---:|
+| 0.20 | 559/560 | 99.82% | 2,736 | 304/560 (54.29%) |
+| 0.25 | 552/560 | 98.57% | 336 | 148/560 (26.43%) |
+| 0.30 | 545/560 | 97.32% | 0 | 0/560 (0%) |
+| 0.35 | 428/560 | 76.43% | 0 | 0/560 (0%) |
+| 0.40 | 202/560 | 36.07% | 0 | 0/560 (0%) |
+| 0.45 | 156/560 | 27.86% | 0 | 0/560 (0%) |
+| 0.50 | 148/560 | 26.43% | 0 | 0/560 (0%) |
+| 0.60 | 8/560 | 1.43% | 0 | 0/560 (0%) |
+| 0.70 | 0/560 | 0.00% | 0 | 0/560 (0%) |
+
+At threshold 0.30, detection rates by scenario were:
+
+- `large_transfer`: 133/140 (95.0%).
+- `off_hours_new_device`: 134/140 (95.71%).
+- `sensitive_access_burst`: 138/140 (98.57%).
+- `short_anomaly_burst`: 140/140 (100%).
+
+### Interpretation
+
+Threshold 0.30 is a candidate threshold for subsequent validation on this synthetic dataset. At 0.25, seven more target cases were detected than at 0.30, but 336 non-target window alerts were generated. At 0.35, detection fell to 76.43%.
+
+### Limitations
+
+Non-target windows are defined as windows other than the exact designated target window; they are not individually verified benign examples. Window observations overlap across temporal-window sizes, so the 228,240 non-target window evaluations are not independent observations. The results therefore do not establish a real-world false-positive rate or a production-ready threshold. Further calibration on labeled, held-out real telemetry is required.
+
+### Artifacts
+
+- Raw rows: `reports/experiment_results/extended_multi_seed_threshold_sensitivity_results.csv`
+- Overall summary: `reports/experiment_results/extended_multi_seed_threshold_sensitivity_summary.csv`
+- Summary by window: `reports/experiment_results/extended_multi_seed_threshold_sensitivity_by_window.csv`
+- Figure: `reports/figures/extended_multi_seed_threshold_sensitivity.png`
+- Experiment runner: `scripts/run_multi_seed_threshold_sensitivity.py`
+- Plotting script: `scripts/plot_threshold_sensitivity_multi_seed.py`

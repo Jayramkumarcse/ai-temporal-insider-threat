@@ -283,3 +283,44 @@ Regenerate these figures from the extended summary CSV using:
     python scripts/plot_multi_seed_results.py --summary extended_multi_seed_scenario_summary.csv --output-prefix extended_multi_seed
 
 These results are exploratory and use synthetic data; they do not establish real-world detection effectiveness.
+
+## 15. Multi-Seed Threshold Sensitivity
+
+A threshold-sensitivity experiment evaluated the scoring system across 20 synthetic-data seeds, four scenarios, and seven temporal-window sizes. Each of the 560 seed–scenario–window combinations was evaluated at nine alert thresholds, producing 5,040 threshold-case rows.
+
+### Overall results
+
+| Threshold | Target detections | Detection rate | Non-target alert windows | Evaluations with at least one non-target alert |
+|---:|---:|---:|---:|---:|
+| 0.20 | 559/560 | 99.82% | 2,736 | 304/560 (54.29%) |
+| 0.25 | 552/560 | 98.57% | 336 | 148/560 (26.43%) |
+| **0.30** | **545/560** | **97.32%** | **0** | **0/560 (0%)** |
+| 0.35 | 428/560 | 76.43% | 0 | 0/560 (0%) |
+| 0.40 | 202/560 | 36.07% | 0 | 0/560 (0%) |
+| 0.45 | 156/560 | 27.86% | 0 | 0/560 (0%) |
+| 0.50 | 148/560 | 26.43% | 0 | 0/560 (0%) |
+| 0.60 | 8/560 | 1.43% | 0 | 0/560 (0%) |
+| 0.70 | 0/560 | 0.00% | 0 | 0/560 (0%) |
+
+At threshold 0.30, scenario-level detection rates were 95.0% for `large_transfer`, 95.71% for `off_hours_new_device`, 98.57% for `sensitive_access_burst`, and 100% for `short_anomaly_burst`.
+
+### Threshold-sensitivity figure
+
+![Detection and non-target alert rates by threshold](reports/figures/extended_multi_seed_threshold_sensitivity.png)
+
+### Interpretation and limitations
+
+Threshold 0.30 is a candidate operating point in this synthetic evaluation: it detected 545 of 560 target cases, with no observed alerts outside the exact target window. Lowering the threshold to 0.25 detected seven additional target cases but produced 336 non-target window alerts. Raising it to 0.35 reduced detection to 76.43%.
+
+Here, a *non-target window* means a scored window other than the designated target window. It is not necessarily a verified benign window. The 228,240 non-target window evaluations overlap across temporal-window sizes and should not be treated as independent real-world observations. Consequently, zero non-target alerts at threshold 0.30 does not establish a zero operational false-positive rate.
+
+These experiments use synthetic data and support exploratory comparison only. The threshold should be calibrated and validated on appropriately labeled, held-out telemetry before any operational deployment.
+
+### Reproduction
+
+The experiment and plotting scripts are:
+
+- `scripts/run_multi_seed_threshold_sensitivity.py`
+- `scripts/plot_threshold_sensitivity_multi_seed.py`
+
+The experiment generates raw, overall-summary, and window-specific CSV files in `reports/experiment_results/`. Use a fresh `--output-prefix` when rerunning, because the runner intentionally refuses to overwrite existing output files.

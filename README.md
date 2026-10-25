@@ -222,3 +222,19 @@ Run the experiment from the repository root using:
     python scripts/run_multi_seed_experiment.py
 
 This is exploratory evidence from five seeds and four synthetic scenarios, not proof of real-world detection performance or generalization.
+
+### Multi-seed detection robustness
+
+Detection rate across five background-generation seeds for each synthetic scenario and temporal window size.
+
+![Multi-seed target detection rate](reports/figures/multi_seed_detection_rate.png)
+
+### Multi-seed score variability
+
+Mean target composite score with standard deviation across the five seeds.
+
+![Multi-seed target score variability](reports/figures/multi_seed_score_variability.png)
+
+Regenerate these figures using:
+
+    python scripts/plot_multi_seed_results.py

@@ -29,6 +29,7 @@ def build_scenario_dataset(
     user_id: str = SCENARIO_USER,
     hour: int | None = None,
     minute: int | None = None,
+    seed: int = 42,
 ) -> list[EventSchema]:
     """
     Build a clean synthetic dataset containing exactly one
@@ -38,7 +39,7 @@ def build_scenario_dataset(
     scenarios remain isolated from one another.
     """
 
-    generator = SyntheticEventGenerator(seed=42)
+    generator = SyntheticEventGenerator(seed=seed)
 
     baseline_events = generator.generate(
         start_date=start_date,

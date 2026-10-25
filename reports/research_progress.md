@@ -183,7 +183,34 @@ generated five non-target alerts under the exact-window definition.
 The results are specific to this dataset, labeling scheme, temporal
 representation, and threshold-selection protocol.
 
-## 10. Limitations
+## 10. Multi-Seed Scenario Robustness Experiment
+
+### Experimental design
+
+The scenario-window evaluation was repeated across five synthetic background-generation seeds: 7, 21, 42, 84, and 123. Four controlled anomaly scenarios were tested at seven temporal window sizes (1, 2, 4, 6, 8, 12, and 24 hours), using a fixed alert threshold of 0.30.
+
+The experiment comprised 140 evaluations. Scenario definitions, target user, evaluation dates, window sizes, minimum-history setting, and threshold were held constant while the synthetic background generator seed varied.
+
+### Results
+
+- Target detection: 136 of 140 evaluations (97.1%).
+- Target ranking: first in all 140 evaluations.
+- Non-target alerts: zero across the evaluated runs.
+- All 20 evaluations for each window size from 1 through 8 hours detected the target.
+- At 12 hours and 24 hours, detection was 3/5 for the large-transfer scenario and 5/5 for each of the other three scenarios.
+- The four missed detections occurred for the large-transfer scenario with seeds 84 and 123 at 12-hour and 24-hour windows.
+
+The missed targets still ranked first, illustrating that relative anomaly ranking and fixed-threshold alerting measure different things. In these runs, the target ranked above other windows but did not reach the configured alert threshold.
+
+### Interpretation and limitations
+
+These results suggest that detection sensitivity can depend on temporal-window size and generated background activity, particularly for the large-transfer scenario. However, this remains an exploratory synthetic-data experiment: five seeds and four controlled scenarios are not sufficient to establish real-world generalization. Zero non-target alerts in this experiment does not establish that the method would have zero false alerts on operational telemetry.
+
+### Reproducibility
+
+The experiment is implemented in `scripts/run_multi_seed_experiment.py`. The five seeds, four scenarios, seven window sizes, and threshold are defined in that script. Raw per-run results and scenario/window summary statistics are saved separately from the original baseline experiment outputs.
+
+## 11. Limitations
 
 1. The data is synthetic; real organizational telemetry has not yet
    been evaluated.
@@ -197,12 +224,11 @@ representation, and threshold-selection protocol.
 7. Threshold sensitivity should be evaluated on held-out data and
    calibrated using validation data, not selected from test results.
 8. An anomaly score indicates unusual behavior, not malicious intent.
-9. Repeated experiments with a fixed synthetic generator do not
-   establish robustness to population changes or unseen scenarios.
+9. Five seeds across four controlled scenarios provide only a narrow assessment of background variation and do not establish robustness to population changes or unseen scenarios.
 
-## 11. Next Research Steps
+## 12. Next Research Steps
 
-1. Add multiple anomaly variants, strengths, users, and random seeds.
+1. Expand anomaly variants, strengths, users, and background-seed coverage beyond the five seeds evaluated.
 2. Use a clearly separated training, validation, and test protocol.
 3. Select thresholds on validation data and freeze them before testing.
 4. Compare models using explicitly documented and comparable labels.
@@ -214,10 +240,13 @@ representation, and threshold-selection protocol.
 8. Avoid interpreting synthetic-scenario success as proof of
    operational insider-threat detection.
 
-## 12. Reproducibility Artifacts
+## 13. Reproducibility Artifacts
 
 Current experiment result files:
 
+- `reports/experiment_results/multi_seed_scenario_results.csv`
+- `reports/experiment_results/multi_seed_scenario_summary.csv`
+- `scripts/run_multi_seed_experiment.py`
 - `reports/experiment_results/temporal_window_comparison.csv`
 - `reports/experiment_results/threshold_sensitivity.csv`
 - `reports/experiment_results/scenario_window_comparison.csv`

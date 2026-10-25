@@ -192,3 +192,33 @@ Shows target composite scores across anomaly hours in UTC and temporal window si
 To regenerate all figures, run:
 
     python scripts/plot_experiment_results.py
+
+
+## 12. Multi-Seed Scenario Robustness Experiment
+
+### Experimental design
+
+Five background-generation seeds (7, 21, 42, 84, and 123) were evaluated across four controlled synthetic anomaly scenarios and seven window sizes (1, 2, 4, 6, 8, 12, and 24 hours). The alert threshold was held constant at 0.30, producing 140 evaluations.
+
+### Results
+
+- Target detections: 136 of 140 evaluations (97.1%).
+- Target ranking: first in all 140 evaluations.
+- Non-target alerts: zero in these controlled runs.
+- All evaluated windows of 1–8 hours detected the target in all five seeds.
+- At 12 and 24 hours, the large-transfer scenario detected the target in 3 of 5 seeds at each window size. The other three scenarios detected it in all five seeds at both sizes.
+- The four missed detections occurred for the large-transfer scenario with seeds 84 and 123 at 12-hour and 24-hour windows.
+
+The target can rank first without crossing the alert threshold. These results illustrate the difference between relative ranking and threshold-based alerting.
+
+### Reproducibility artifacts
+
+- `scripts/run_multi_seed_experiment.py`
+- `reports/experiment_results/multi_seed_scenario_results.csv`
+- `reports/experiment_results/multi_seed_scenario_summary.csv`
+
+Run the experiment from the repository root using:
+
+    python scripts/run_multi_seed_experiment.py
+
+This is exploratory evidence from five seeds and four synthetic scenarios, not proof of real-world detection performance or generalization.

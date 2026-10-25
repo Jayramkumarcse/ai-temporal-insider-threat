@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import csv
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -81,13 +82,36 @@ def save_rows(rows: list[dict], path: Path) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Evaluate scenario detection across synthetic background seeds."
+    )
+    parser.add_argument(
+        "--seeds",
+        nargs="+",
+        type=int,
+        default=list(SEEDS),
+        help="Random seeds to evaluate (default: original five seeds).",
+    )
+    parser.add_argument(
+        "--output-prefix",
+        default="multi_seed_scenario",
+        help="Prefix for separate result and summary CSV files.",
+    )
+    args = parser.parse_args()
+
+    if len(set(args.seeds)) != len(args.seeds):
+        parser.error("Seed values must be unique.")
+
+    raw_output = OUTPUT_DIR / f"{args.output_prefix}_results.csv"
+    summary_output = OUTPUT_DIR / f"{args.output_prefix}_summary.csv"
+
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     rows = []
 
-    total_runs = len(SEEDS) * len(SCENARIOS) * len(WINDOW_SIZES)
+    total_runs = len(args.seeds) * len(SCENARIOS) * len(WINDOW_SIZES)
     run_number = 0
 
-    for seed in SEEDS:
+    for seed in args.seeds:
         for scenario in SCENARIOS:
             print(f"\nSeed {seed} | Scenario: {scenario}", flush=True)
             events = build_processed_events(scenario, seed)
@@ -132,7 +156,7 @@ def main() -> None:
                     flush=True,
                 )
 
-    save_rows(rows, RAW_OUTPUT)
+    save_rows(rows, raw_output)
 
     raw = pd.DataFrame(rows)
     summary = (
@@ -148,12 +172,12 @@ def main() -> None:
             mean_non_target_alerts=("normal_alerts", "mean"),
         )
     )
-    summary.to_csv(SUMMARY_OUTPUT, index=False)
+    summary.to_csv(summary_output, index=False)
 
     print("\n===== MULTI-SEED EXPERIMENT COMPLETE =====")
     print(f"Evaluations: {len(rows)}")
-    print(f"Raw results: {RAW_OUTPUT.relative_to(ROOT)}")
-    print(f"Summary:     {SUMMARY_OUTPUT.relative_to(ROOT)}")
+    print(f"Raw results: {raw_output.relative_to(ROOT)}")
+    print(f"Summary:     {summary_output.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

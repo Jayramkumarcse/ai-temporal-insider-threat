@@ -210,6 +210,24 @@ These results suggest that detection sensitivity can depend on temporal-window s
 
 The experiment is implemented in `scripts/run_multi_seed_experiment.py`. The five seeds, four scenarios, seven window sizes, and threshold are defined in that script. Raw per-run results and scenario/window summary statistics are saved separately from the original baseline experiment outputs.
 
+### Extended 20-seed evaluation
+
+The experiment was expanded to seeds 1–20, retaining the four controlled synthetic scenarios, seven window sizes, and threshold of 0.30. This produced 560 evaluations.
+
+- Target detection: 545/560 (97.3%).
+- Target ranked first: 560/560.
+- Non-target alerts: zero in these controlled runs.
+- Detection was 80/80 for each window size from 1 to 8 hours, 74/80 (92.5%) for 12 hours, and 71/80 (88.75%) for 24 hours.
+- By scenario, detection was 133/140 (95.0%) for large transfer, 134/140 (95.7%) for off-hours new device, 138/140 (98.6%) for sensitive access burst, and 140/140 (100%) for short anomaly burst.
+
+The 15 missed detections occurred at 12-hour and 24-hour windows. The target still ranked first in each case, but its score was below the configured threshold of 0.30. This distinguishes relative anomaly ranking from threshold-based detection.
+
+The results are from synthetic background variation and four controlled scenarios. Twenty seeds improve the robustness assessment relative to the initial five-seed study but do not establish generalization to real-world telemetry.
+
+The extended experiment outputs are saved in:
+- `reports/experiment_results/extended_multi_seed_scenario_results.csv`
+- `reports/experiment_results/extended_multi_seed_scenario_summary.csv`
+
 ## 11. Limitations
 
 1. The data is synthetic; real organizational telemetry has not yet
@@ -224,11 +242,11 @@ The experiment is implemented in `scripts/run_multi_seed_experiment.py`. The fiv
 7. Threshold sensitivity should be evaluated on held-out data and
    calibrated using validation data, not selected from test results.
 8. An anomaly score indicates unusual behavior, not malicious intent.
-9. Five seeds across four controlled scenarios provide only a narrow assessment of background variation and do not establish robustness to population changes or unseen scenarios.
+9. Twenty seeds across four controlled scenarios provide a broader but still limited assessment of background variation; they do not establish robustness to population changes or unseen scenarios.
 
 ## 12. Next Research Steps
 
-1. Expand anomaly variants, strengths, users, and background-seed coverage beyond the five seeds evaluated.
+1. Expand anomaly variants and strengths, add target users and scenario designs, and test additional seeds beyond the 20 evaluated.
 2. Use a clearly separated training, validation, and test protocol.
 3. Select thresholds on validation data and freeze them before testing.
 4. Compare models using explicitly documented and comparable labels.

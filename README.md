@@ -238,3 +238,26 @@ Mean target composite score with standard deviation across the five seeds.
 Regenerate these figures using:
 
     python scripts/plot_multi_seed_results.py
+
+## 13. Extended 20-Seed Evaluation
+
+The expanded study evaluated 20 synthetic background-generation seeds across four controlled anomaly scenarios and seven temporal window sizes, for 560 total evaluations at a fixed alert threshold of 0.30.
+
+- Target detection: **545/560 (97.3%)**.
+- Target ranked first in all 560 evaluations.
+- No non-target alerts were recorded in this controlled experiment.
+- Detection was 100% for window sizes from 1–8 hours, 92.5% for 12-hour windows, and 88.75% for 24-hour windows.
+- Scenario detection rates were 95.0% for large transfer, 95.7% for off-hours new device, 98.6% for sensitive access burst, and 100% for short anomaly burst.
+
+The 15 missed detections all occurred at 12-hour or 24-hour windows. Although the target ranked first in every run, the missed target scores were below the configured 0.30 alert threshold. Relative ranking is therefore not the same as threshold-based detection.
+
+Reproduce the expanded experiment from the repository root:
+
+    python scripts/run_multi_seed_experiment.py --seeds 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 --output-prefix extended_multi_seed_scenario
+
+Results are stored separately from the original five-seed study:
+
+- `reports/experiment_results/extended_multi_seed_scenario_results.csv`
+- `reports/experiment_results/extended_multi_seed_scenario_summary.csv`
+
+These are exploratory results from synthetic data. They do not establish real-world detection effectiveness or generalization.

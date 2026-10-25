@@ -324,3 +324,45 @@ The experiment and plotting scripts are:
 - `scripts/plot_threshold_sensitivity_multi_seed.py`
 
 The experiment generates raw, overall-summary, and window-specific CSV files in `reports/experiment_results/`. Use a fresh `--output-prefix` when rerunning, because the runner intentionally refuses to overwrite existing output files.
+
+## 16. Held-Out Evaluation of the Window-Aware Threshold Policy
+
+### Policy selection and evaluation
+
+The threshold-sensitivity study used seeds 1–20 to select this candidate policy:
+
+- **1–8 hour windows:** alert threshold 0.30.
+- **12–24 hour windows:** alert threshold 0.25.
+
+The policy was then evaluated on seeds 21–40, which were not used to select the thresholds. Each cohort contains 560 seed–scenario–window cases across four synthetic scenarios and seven window sizes.
+
+### Development versus held-out results
+
+| Cohort | Policy | Target detections | Non-target alerts |
+|---|---|---:|---:|
+| Development, seeds 1–20 | Fixed threshold 0.25 | 552/560 (98.57%) | 336 |
+| Development, seeds 1–20 | Fixed threshold 0.30 | 545/560 (97.32%) | 0 |
+| Development, seeds 1–20 | Window-aware candidate | 552/560 (98.57%) | 0 |
+| Held-out, seeds 21–40 | Fixed threshold 0.25 | 549/560 (98.04%) | 372 |
+| Held-out, seeds 21–40 | Fixed threshold 0.30 | 539/560 (96.25%) | 0 |
+| Held-out, seeds 21–40 | Window-aware candidate | 549/560 (98.04%) | 0 |
+
+### Held-out breakdown
+
+The candidate policy detected 100% of target cases for each window size from 1 through 8 hours. Detection was 75/80 (93.75%) at 12 hours and 74/80 (92.50%) at 24 hours.
+
+By scenario, held-out detection was 137/140 (97.86%) for `large_transfer`, 132/140 (94.29%) for `off_hours_new_device`, and 140/140 (100%) for each of `sensitive_access_burst` and `short_anomaly_burst`.
+
+### Interpretation and limitations
+
+The candidate policy improved detection by 10 cases relative to fixed threshold 0.30 in the held-out cohort, while producing no observed non-target alerts. It matched fixed threshold 0.25's target detection count while avoiding the non-target alerts produced by that fixed threshold in this synthetic experiment.
+
+These results support further investigation of window-aware thresholds, but do not establish a production-ready policy. A non-target window is not necessarily a verified benign example, and window evaluations overlap across window sizes. The zero observed alert count is not evidence of a zero real-world false-positive rate. Further evaluation on appropriately labeled, held-out real telemetry is required.
+
+### Held-out artifacts
+
+- Raw results: `reports/experiment_results/holdout_seed21_40_threshold_sensitivity_results.csv`
+- Overall summary: `reports/experiment_results/holdout_seed21_40_threshold_sensitivity_summary.csv`
+- Summary by window: `reports/experiment_results/holdout_seed21_40_threshold_sensitivity_by_window.csv`
+
+The experiment used `scripts/run_multi_seed_threshold_sensitivity.py` with seeds 21–40 and the same nine thresholds as the development experiment.

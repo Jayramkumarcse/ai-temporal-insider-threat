@@ -320,3 +320,53 @@ Non-target windows are defined as windows other than the exact designated target
 - Figure: `reports/figures/extended_multi_seed_threshold_sensitivity.png`
 - Experiment runner: `scripts/run_multi_seed_threshold_sensitivity.py`
 - Plotting script: `scripts/plot_threshold_sensitivity_multi_seed.py`
+
+## Held-Out Evaluation of the Window-Aware Threshold Policy
+
+### Protocol
+
+Thresholds were selected using development seeds 1–20. The candidate policy uses threshold 0.30 for windows of 1–8 hours and threshold 0.25 for windows of 12–24 hours. The fixed thresholds 0.25 and 0.30 provide comparison baselines.
+
+The candidate policy was evaluated on seeds 21–40, producing 560 seed–scenario–window cases and 5,040 rows across nine threshold settings. This is a held-out-seed synthetic evaluation, not validation on real organizational telemetry.
+
+### Development and held-out comparison
+
+| Cohort | Policy | Target detections | Non-target alerts |
+|---|---|---:|---:|
+| Development, seeds 1–20 | Fixed 0.25 | 552/560 (98.57%) | 336 |
+| Development, seeds 1–20 | Fixed 0.30 | 545/560 (97.32%) | 0 |
+| Development, seeds 1–20 | Window-aware | 552/560 (98.57%) | 0 |
+| Held-out, seeds 21–40 | Fixed 0.25 | 549/560 (98.04%) | 372 |
+| Held-out, seeds 21–40 | Fixed 0.30 | 539/560 (96.25%) | 0 |
+| Held-out, seeds 21–40 | Window-aware | 549/560 (98.04%) | 0 |
+
+### Held-out results by window
+
+- 1 hour: 80/80 detections (100%).
+- 2 hours: 80/80 (100%).
+- 4 hours: 80/80 (100%).
+- 6 hours: 80/80 (100%).
+- 8 hours: 80/80 (100%).
+- 12 hours: 75/80 (93.75%).
+- 24 hours: 74/80 (92.50%).
+
+### Held-out results by scenario
+
+- `large_transfer`: 137/140 (97.86%).
+- `off_hours_new_device`: 132/140 (94.29%).
+- `sensitive_access_burst`: 140/140 (100%).
+- `short_anomaly_burst`: 140/140 (100%).
+
+### Interpretation
+
+On held-out seeds, the window-aware policy detected 10 more target cases than fixed threshold 0.30, with no observed non-target alerts. It matched fixed threshold 0.25's target detection count while avoiding that threshold's 372 non-target alerts in the held-out cohort.
+
+### Limitations
+
+These results are evidence for further investigation, not proof of production readiness. Non-target windows are not individually verified benign examples. Window observations overlap across window sizes, so they are not all independent observations. Zero observed non-target alerts in this synthetic experiment does not establish a zero real-world false-positive rate. Additional validation on labeled, appropriately held-out telemetry is necessary.
+
+### Artifacts
+
+- Raw results: `reports/experiment_results/holdout_seed21_40_threshold_sensitivity_results.csv`
+- Overall summary: `reports/experiment_results/holdout_seed21_40_threshold_sensitivity_summary.csv`
+- By-window summary: `reports/experiment_results/holdout_seed21_40_threshold_sensitivity_by_window.csv`

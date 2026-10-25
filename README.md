@@ -421,3 +421,60 @@ The results support further investigation of window-aware thresholding. However,
 - Replication by-window summary: `reports/experiment_results/replication_seed41_60_threshold_sensitivity_by_window.csv`
 
 Rebuild the consolidated comparison by running `python scripts/compare_window_aware_policy_cohorts.py`.
+
+## 18. Score Component Ablation Study
+
+### Methodology
+
+A controlled ablation study evaluated ten variants of the temporal and security-context scoring system across 60 synthetic-data seeds, four scenarios, seven window sizes, and nine alert thresholds. The runner generated 151,200 variant-threshold evaluation rows.
+
+The full composite combines temporal and context scores with equal weights. Temporal scoring combines deviation coverage (0.50), zero-variance deviation coverage (0.30), and magnitude (0.20). Context scoring averages sensitive-access, transfer-volume, device, and IP signals.
+
+Ablation variants remove one component at a time and renormalize the remaining weights. The `temporal_only` and `context_only` variants evaluate each major signal independently. Thresholds were selected using development seeds 1–20 by maximizing detection among the tested thresholds that produced zero observed non-target alerts. The selected threshold was then evaluated unchanged on seeds 21–40 and 41–60.
+
+### Selected-threshold results
+
+| Variant | Selected threshold | Development detection | Held-out detection | Replication detection | Combined detection |
+|---|---:|---:|---:|---:|---:|
+| Full composite | 0.30 | 97.32% | 96.25% | 96.43% | 96.67% |
+| Temporal only | 0.60 | 23.04% | 24.46% | 24.64% | 24.05% |
+| Context only | 0.20 | 81.07% | 80.71% | 80.71% | 80.83% |
+| No temporal deviation | 0.30 | 78.39% | 78.04% | 77.32% | 77.92% |
+| No temporal zero-variance | 0.35 | 77.86% | 76.96% | 76.96% | 77.26% |
+| No temporal magnitude | 0.30 | 96.43% | 95.00% | 95.36% | 95.60% |
+| No sensitive-access context | 0.30 | 60.54% | 59.46% | 59.46% | 59.82% |
+| No transfer context | 0.30 | 77.14% | 76.07% | 77.14% | 76.79% |
+| No device context | 0.30 | 97.68% | 97.14% | 97.14% | 97.32% |
+| No IP context | 0.30 | 98.04% | 97.50% | 97.68% | 97.74% |
+
+All variants achieved zero observed non-target alerts at their selected threshold in each cohort. This is an empirical result for the evaluated synthetic data and is not evidence of zero false-positive rates in operational telemetry.
+
+### Ablation comparison figure
+
+![Score-component ablation detection rates across the three seed cohorts](reports/figures/score_component_ablation_selected_thresholds.png)
+
+### Interpretation
+
+Removing temporal deviation, zero-variance deviation, sensitive-access context, or transfer context substantially reduced detection under this experiment's scoring and threshold-selection procedure. Removing the IP component modestly improved detection across all three cohorts. Removing device context also produced a smaller improvement.
+
+The temporal-only variant had much lower detection under its selected zero-alert threshold, while context-only scoring performed better but remained below the full composite. These results suggest that combining signals is useful in the tested scenarios.
+
+Component removal changes score distributions and renormalizes the remaining weights, so these results should not be interpreted as isolated causal estimates of feature importance. The selected thresholds are optimal only among the tested grid values under the development-set selection rule.
+
+### Limitations
+
+All experiments use synthetic events. A non-target window is not necessarily a verified benign example, and window observations overlap across window sizes. No real-world false-positive rate, production-ready threshold, or causal feature importance is established by this study. Further validation on appropriately labeled, held-out organizational telemetry is needed.
+
+### Reproducibility artifacts
+
+- Ablation runner: `scripts/run_score_component_ablation.py`
+- Threshold-selection summary: `scripts/summarize_score_component_ablation.py`
+- Plotting script: `scripts/plot_score_component_ablation.py`
+- Raw results: `reports/experiment_results/score_component_ablation_60_seed_results.csv`
+- Overall summary: `reports/experiment_results/score_component_ablation_60_seed_summary.csv`
+- Summary by window: `reports/experiment_results/score_component_ablation_60_seed_by_window.csv`
+- Summary by scenario: `reports/experiment_results/score_component_ablation_60_seed_by_scenario.csv`
+- Selected thresholds: `reports/experiment_results/score_component_ablation_selected_thresholds.csv`
+- Figure: `reports/figures/score_component_ablation_selected_thresholds.png`
+
+Rerun the experiment with `python scripts/run_score_component_ablation.py`, then generate the selected-threshold summary and figure with the corresponding scripts.

@@ -356,6 +356,15 @@ def build_temporal_window_experiment_results(
                 "temporal_score": temporal[
                     "temporal_score"
                 ],
+                "temporal_deviation_coverage": temporal[
+                    "deviation_coverage"
+                ],
+                "temporal_zero_variance_coverage": temporal[
+                    "zero_variance_coverage"
+                ],
+                "temporal_magnitude_signal": temporal[
+                    "magnitude_signal"
+                ],
                 "deviation_count": temporal[
                     "deviation_count"
                 ],
@@ -366,6 +375,18 @@ def build_temporal_window_experiment_results(
                 ),
                 "context_signal": composite[
                     "context_signal"
+                ],
+                "context_sensitive_signal": context[
+                    "sensitive_signal"
+                ],
+                "context_transfer_signal": context[
+                    "transfer_signal"
+                ],
+                "context_device_signal": context[
+                    "device_signal"
+                ],
+                "context_ip_signal": context[
+                    "ip_signal"
                 ],
                 "composite_signal": composite[
                     "composite_signal"

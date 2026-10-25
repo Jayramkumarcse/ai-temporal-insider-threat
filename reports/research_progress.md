@@ -428,3 +428,52 @@ The results are from synthetic data. Non-target windows are not individually ver
 - Raw replication: `reports/experiment_results/replication_seed41_60_threshold_sensitivity_results.csv`
 - Replication summary: `reports/experiment_results/replication_seed41_60_threshold_sensitivity_summary.csv`
 - Replication by-window data: `reports/experiment_results/replication_seed41_60_threshold_sensitivity_by_window.csv`
+
+## Score Component Ablation Study
+
+### Experimental design
+
+Ten scoring variants were evaluated across 60 synthetic seeds, four scenarios, seven window sizes, and nine thresholds, for 151,200 raw variant-threshold rows. The full composite combines temporal and context scores equally. The temporal signal weights deviation coverage at 0.50, zero-variance deviation coverage at 0.30, and magnitude at 0.20. The context signal equally averages sensitive-access, transfer, device, and IP signals.
+
+Variants included temporal-only and context-only scoring, removal of each temporal component, and removal of each context component. Remaining component weights were renormalized following removal.
+
+For each variant, the threshold was selected using seeds 1–20 by maximizing target detection among the tested thresholds with zero observed non-target alerts. That threshold was then held fixed for seeds 21–40 and 41–60.
+
+### Results
+
+| Variant | Threshold | Development detection | Held-out detection | Replication detection | Combined detection |
+|---|---:|---:|---:|---:|---:|
+| Full composite | 0.30 | 97.32% | 96.25% | 96.43% | 96.67% |
+| Temporal only | 0.60 | 23.04% | 24.46% | 24.64% | 24.05% |
+| Context only | 0.20 | 81.07% | 80.71% | 80.71% | 80.83% |
+| No temporal deviation | 0.30 | 78.39% | 78.04% | 77.32% | 77.92% |
+| No temporal zero-variance | 0.35 | 77.86% | 76.96% | 76.96% | 77.26% |
+| No temporal magnitude | 0.30 | 96.43% | 95.00% | 95.36% | 95.60% |
+| No sensitive-access context | 0.30 | 60.54% | 59.46% | 59.46% | 59.82% |
+| No transfer context | 0.30 | 77.14% | 76.07% | 77.14% | 76.79% |
+| No device context | 0.30 | 97.68% | 97.14% | 97.14% | 97.32% |
+| No IP context | 0.30 | 98.04% | 97.50% | 97.68% | 97.74% |
+
+All variants had zero observed non-target alerts at their selected threshold across the three cohorts.
+
+### Interpretation
+
+Removing temporal deviation, zero-variance deviation, sensitive-access context, or transfer context substantially reduced detection under the tested setup. Removing IP context improved detection modestly in all three cohorts; removing device context also improved it slightly. Context-only scoring outperformed temporal-only scoring at the selected zero-alert thresholds, but remained below the full composite.
+
+These findings describe this scoring design and synthetic benchmark. Ablation reweights the remaining components, and each threshold was selected using a finite grid on the development cohort. Thus, the results are not isolated causal measures of feature importance.
+
+### Limitations
+
+Synthetic non-target windows are not individually verified benign cases, and temporal windows overlap. Zero observed alerts do not establish a zero real-world false-positive rate. Further validation on appropriately labeled, held-out real telemetry is required before making operational claims.
+
+### Artifacts
+
+- Runner: `scripts/run_score_component_ablation.py`
+- Threshold selector: `scripts/summarize_score_component_ablation.py`
+- Plotter: `scripts/plot_score_component_ablation.py`
+- Raw rows: `reports/experiment_results/score_component_ablation_60_seed_results.csv`
+- Summary: `reports/experiment_results/score_component_ablation_60_seed_summary.csv`
+- By-window: `reports/experiment_results/score_component_ablation_60_seed_by_window.csv`
+- By-scenario: `reports/experiment_results/score_component_ablation_60_seed_by_scenario.csv`
+- Selected thresholds: `reports/experiment_results/score_component_ablation_selected_thresholds.csv`
+- Figure: `reports/figures/score_component_ablation_selected_thresholds.png`

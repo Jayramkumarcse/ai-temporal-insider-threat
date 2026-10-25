@@ -261,3 +261,25 @@ Results are stored separately from the original five-seed study:
 - `reports/experiment_results/extended_multi_seed_scenario_summary.csv`
 
 These are exploratory results from synthetic data. They do not establish real-world detection effectiveness or generalization.
+
+## 14. Extended 20-Seed Visualizations
+
+The following figures summarize the expanded evaluation across 20 synthetic background-generation seeds, four controlled scenarios, and seven temporal window sizes.
+
+### Detection rate across 20 seeds
+
+The figure compares target detection rates at each temporal window size. Detection was lower for longer windows in this experiment.
+
+![Detection rate across 20 seeds](reports/figures/extended_multi_seed_detection_rate.png)
+
+### Anomaly-score variability across 20 seeds
+
+The figure shows the mean target composite score and standard deviation across seeds for each scenario and window size.
+
+![Anomaly-score variability across 20 seeds](reports/figures/extended_multi_seed_score_variability.png)
+
+Regenerate these figures from the extended summary CSV using:
+
+    python scripts/plot_multi_seed_results.py --summary extended_multi_seed_scenario_summary.csv --output-prefix extended_multi_seed
+
+These results are exploratory and use synthetic data; they do not establish real-world detection effectiveness.

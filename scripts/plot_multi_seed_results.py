@@ -1,5 +1,6 @@
-"""Plot multi-seed scenario robustness results."""
+"""Plot scenario robustness results from a multi-seed summary CSV."""
 
+import argparse
 from pathlib import Path
 
 import matplotlib
@@ -12,20 +13,46 @@ DATA = ROOT / "reports" / "experiment_results"
 OUT = ROOT / "reports" / "figures"
 OUT.mkdir(parents=True, exist_ok=True)
 
-SUMMARY = DATA / "multi_seed_scenario_summary.csv"
-
 
 def main():
-    df = pd.read_csv(SUMMARY)
+    parser = argparse.ArgumentParser(
+        description="Plot detection rates and score variability across seeds."
+    )
+    parser.add_argument(
+        "--summary",
+        default="multi_seed_scenario_summary.csv",
+        help="Summary CSV filename inside reports/experiment_results.",
+    )
+    parser.add_argument(
+        "--output-prefix",
+        default="multi_seed",
+        help="Prefix for generated figure filenames.",
+    )
+    args = parser.parse_args()
+
+    summary_path = DATA / args.summary
+    if not summary_path.is_file():
+        raise FileNotFoundError(f"Summary CSV not found: {summary_path}")
+
+    df = pd.read_csv(summary_path)
     required = {
-        "scenario", "window_hours", "detection_rate",
-        "mean_composite_score", "score_std",
+        "scenario",
+        "window_hours",
+        "runs",
+        "detection_rate",
+        "mean_composite_score",
+        "score_std",
     }
     missing = required - set(df.columns)
     if missing:
         raise ValueError(f"Missing CSV columns: {sorted(missing)}")
 
-    # Figure 1: detection rate across background seeds.
+    if df.empty:
+        raise ValueError(f"Summary CSV is empty: {summary_path}")
+
+    seed_count = int(df["runs"].max())
+
+    # Figure 1: detection rate across background-generation seeds.
     fig, ax = plt.subplots(figsize=(9, 5))
     for scenario, group in df.groupby("scenario"):
         group = group.sort_values("window_hours")
@@ -37,20 +64,21 @@ def main():
         )
 
     ax.set(
-        title="Multi-Seed Target Detection Rate",
+        title=f"Target Detection Rate Across {seed_count} Seeds",
         xlabel="Temporal window (hours)",
-        ylabel="Detection rate across five seeds",
+        ylabel="Detection rate",
         ylim=(-0.05, 1.05),
     )
     ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     ax.grid(True, alpha=0.3)
     ax.legend(fontsize=8)
     fig.tight_layout()
-    fig.savefig(OUT / "multi_seed_detection_rate.png",
-                dpi=180, bbox_inches="tight")
+
+    detection_path = OUT / f"{args.output_prefix}_detection_rate.png"
+    fig.savefig(detection_path, dpi=180, bbox_inches="tight")
     plt.close(fig)
 
-    # Figure 2: mean target score, with between-seed standard deviation.
+    # Figure 2: mean target score and between-seed standard deviation.
     fig, ax = plt.subplots(figsize=(9, 5))
     for scenario, group in df.groupby("scenario"):
         group = group.sort_values("window_hours")
@@ -64,19 +92,21 @@ def main():
         )
 
     ax.set(
-        title="Multi-Seed Target Score and Variability",
+        title=f"Target Score Variability Across {seed_count} Seeds",
         xlabel="Temporal window (hours)",
-        ylabel="Mean target composite score ± standard deviation",
+        ylabel="Mean composite score ± standard deviation",
     )
     ax.grid(True, alpha=0.3)
     ax.legend(fontsize=8)
     fig.tight_layout()
-    fig.savefig(OUT / "multi_seed_score_variability.png",
-                dpi=180, bbox_inches="tight")
+
+    variability_path = OUT / f"{args.output_prefix}_score_variability.png"
+    fig.savefig(variability_path, dpi=180, bbox_inches="tight")
     plt.close(fig)
 
-    print("Saved: reports/figures/multi_seed_detection_rate.png")
-    print("Saved: reports/figures/multi_seed_score_variability.png")
+    print(f"Input summary: {summary_path.relative_to(ROOT)}")
+    print(f"Saved: {detection_path.relative_to(ROOT)}")
+    print(f"Saved: {variability_path.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

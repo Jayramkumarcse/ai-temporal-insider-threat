@@ -370,3 +370,61 @@ These results are evidence for further investigation, not proof of production re
 - Raw results: `reports/experiment_results/holdout_seed21_40_threshold_sensitivity_results.csv`
 - Overall summary: `reports/experiment_results/holdout_seed21_40_threshold_sensitivity_summary.csv`
 - By-window summary: `reports/experiment_results/holdout_seed21_40_threshold_sensitivity_by_window.csv`
+
+## 60-Seed Window-Aware Policy Comparison
+
+### Evaluation protocol
+
+The candidate threshold policy was selected on development seeds 1–20: threshold 0.30 for windows of 1–8 hours and threshold 0.25 for windows of 12–24 hours. It was applied unchanged to seeds 21–40 and 41–60.
+
+Each cohort comprises four scenarios and seven window sizes, yielding 560 seed–scenario–window cases per cohort. Each underlying run was evaluated at nine thresholds. The comparison script validates input row counts, seed membership, duplicate cases, target-score flags, and threshold monotonicity before generating its outputs.
+
+### Cohort comparison
+
+| Cohort | Policy | Target detections | Non-target alerts |
+|---|---|---:|---:|
+| Development, 1–20 | Fixed 0.25 | 552/560 (98.57%) | 336 |
+| Development, 1–20 | Fixed 0.30 | 545/560 (97.32%) | 0 |
+| Development, 1–20 | Window-aware | 552/560 (98.57%) | 0 |
+| Held-out, 21–40 | Fixed 0.25 | 549/560 (98.04%) | 372 |
+| Held-out, 21–40 | Fixed 0.30 | 539/560 (96.25%) | 0 |
+| Held-out, 21–40 | Window-aware | 549/560 (98.04%) | 0 |
+| Replication, 41–60 | Fixed 0.25 | 551/560 (98.39%) | 348 |
+| Replication, 41–60 | Fixed 0.30 | 540/560 (96.43%) | 0 |
+| Replication, 41–60 | Window-aware | 551/560 (98.39%) | 0 |
+
+### Combined results: seeds 1–60
+
+| Policy | Target detections | Detection rate | Non-target alerts |
+|---|---:|---:|---:|
+| Fixed threshold 0.25 | 1,652/1,680 | 98.33% | 1,056 |
+| Fixed threshold 0.30 | 1,624/1,680 | 96.67% | 0 |
+| Window-aware candidate | 1,652/1,680 | 98.33% | 0 |
+
+### Window-specific candidate results
+
+- 1 hour: 240/240 (100%).
+- 2 hours: 240/240 (100%).
+- 4 hours: 240/240 (100%).
+- 6 hours: 240/240 (100%).
+- 8 hours: 240/240 (100%).
+- 12 hours: 226/240 (94.17%).
+- 24 hours: 226/240 (94.17%).
+
+### Interpretation
+
+Across all 60 seeds, the window-aware policy matches fixed threshold 0.25's 1,652 target detections, while producing zero observed non-target alerts in the evaluated synthetic windows. It detects 28 more target cases than fixed threshold 0.30, which also produced zero observed non-target alerts in this experiment.
+
+### Limitations
+
+The results are from synthetic data. Non-target windows are not individually verified benign examples, and window observations overlap across window sizes. Zero observed non-target alerts does not establish a zero real-world false-positive rate or production readiness. Evaluation on appropriately labeled, held-out real telemetry is needed.
+
+### Artifacts
+
+- Comparison script: `scripts/compare_window_aware_policy_cohorts.py`
+- Cohort summary: `reports/experiment_results/window_aware_policy_cohort_comparison.csv`
+- By-window summary: `reports/experiment_results/window_aware_policy_by_window.csv`
+- By-scenario summary: `reports/experiment_results/window_aware_policy_by_scenario.csv`
+- Raw replication: `reports/experiment_results/replication_seed41_60_threshold_sensitivity_results.csv`
+- Replication summary: `reports/experiment_results/replication_seed41_60_threshold_sensitivity_summary.csv`
+- Replication by-window data: `reports/experiment_results/replication_seed41_60_threshold_sensitivity_by_window.csv`

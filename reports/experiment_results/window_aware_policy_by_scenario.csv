@@ -1,0 +1,13 @@
+cohort,scenario,evaluations,target_detections,detection_rate,non_target_alert_windows
+development_1_20,large_transfer,140,138,0.9857142857142858,0
+development_1_20,off_hours_new_device,140,134,0.9571428571428572,0
+development_1_20,sensitive_access_burst,140,140,1.0,0
+development_1_20,short_anomaly_burst,140,140,1.0,0
+heldout_21_40,large_transfer,140,137,0.9785714285714285,0
+heldout_21_40,off_hours_new_device,140,132,0.9428571428571428,0
+heldout_21_40,sensitive_access_burst,140,140,1.0,0
+heldout_21_40,short_anomaly_burst,140,140,1.0,0
+replication_41_60,large_transfer,140,139,0.9928571428571429,0
+replication_41_60,off_hours_new_device,140,132,0.9428571428571428,0
+replication_41_60,sensitive_access_burst,140,140,1.0,0
+replication_41_60,short_anomaly_burst,140,140,1.0,0

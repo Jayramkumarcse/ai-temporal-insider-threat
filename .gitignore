@@ -52,3 +52,7 @@ reports/experiment_results/*
 
 # Track experiment result CSVs for research reproducibility
 !reports/experiment_results/*.csv
+
+# Local CERT dataset and raw logs (do not commit)
+/data/cert/
+/ai-temporal-insider-threat/
